@@ -24,6 +24,8 @@ from spotpy.describe import describe
 
 
 
+from spotpy.algorithms import bmo
+
 #Create samplers for every algorithm:
 results=[]
 spot_setup=spot_setup()
@@ -36,14 +38,14 @@ dbformat = "csv"
 sampler=spotpy.algorithms.mc(spot_setup,parallel=parallel, dbname='RosenMC', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
-results.append(sampler.getdata())
+#results.append(sampler.getdata())
 
 
 
 sampler=spotpy.algorithms.lhs(spot_setup,parallel=parallel, dbname='RosenLHS', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
-results.append(sampler.getdata())
+#results.append(sampler.getdata())
 
 
 sampler=spotpy.algorithms.mle(spot_setup, parallel=parallel, dbname='RosenMLE', dbformat=dbformat, sim_timeout=timeout)
@@ -60,17 +62,17 @@ results.append(sampler.getdata())
 sampler=spotpy.algorithms.sceua(spot_setup, parallel=parallel, dbname='RosenSCEUA', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep,ngs=4)
-results.append(sampler.getdata())
+#results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.sa(spot_setup, parallel=parallel, dbname='RosenSA', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
-results.append(sampler.getdata())
+#results.append(sampler.getdata())
 
 sampler=spotpy.algorithms.demcz(spot_setup,parallel=parallel, dbname='RosenDEMCz', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep,nChains=4)
-results.append(sampler.getdata())
+#results.append(sampler.getdata())
 
 
 sampler=spotpy.algorithms.rope(spot_setup, parallel=parallel, dbname='RosenROPE',  dbformat=dbformat,sim_timeout=timeout)
@@ -82,13 +84,13 @@ results.append(sampler.getdata())
 sampler=spotpy.algorithms.abc(spot_setup, parallel=parallel,   dbname='RosenABC',     dbformat=dbformat,sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
-results.append(sampler.getdata())
+#results.append(sampler.getdata())
 
 
 sampler=spotpy.algorithms.fscabc(spot_setup, parallel=parallel, dbname='RosenFSABC', dbformat=dbformat, sim_timeout=timeout)
 print(describe(sampler))
 sampler.sample(rep)
-results.append(sampler.getdata())
+#results.append(sampler.getdata())
 
 
 sampler=spotpy.algorithms.demcz(spot_setup, parallel=parallel, dbname='RosenDEMCZ', dbformat=dbformat, sim_timeout=timeout)
