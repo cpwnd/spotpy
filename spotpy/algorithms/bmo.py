@@ -89,6 +89,7 @@ class Bird():
 
 class bmo(_algorithm):
     """Algorithm implementation based on Bird Mating Optimization, Askarzadeh (2014)"""
+
     def __init__(self, spot_setup, dbname=None, dbformat=None, parallel='seq', save_sim=True):
         """
 
@@ -96,6 +97,10 @@ class bmo(_algorithm):
         # init parameters
         #  as provided in the paper
         self.society_size = 10
+        _algorithm.__init__(self, spot_setup, dbname=dbname,
+                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+
+        # init parameters
         monogamous = 0.5
         polygynous = 0.3
         promiscuous = 0.1
