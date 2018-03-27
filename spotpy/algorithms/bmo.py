@@ -17,7 +17,7 @@ from __future__ import unicode_literals
 import spotpy
 from spotpy.examples.spot_setup_rosenbrock import spot_setup
 
-
+from pprint import pprint
 
 import collections
 import math
@@ -25,8 +25,8 @@ import math
 from _algorithm import _algorithm
 
 def get_fitness(bird):
-    print("Bird = ", bird)
-    return bird.fitness()
+    #print("Bird = ", bird)
+    return bird._fitness
 
 def split_gender(soc):
     males = []
@@ -42,6 +42,16 @@ def split_gender(soc):
 
 def specify_breeding(soc):
     #TODO: implement this
+    #TODO
+    #TODO
+    ########################
+    ########################
+    ########################
+    ########################
+    ########################
+    ########################
+    ########################
+    
     return soc, soc, soc
 
 def selection(soc):
@@ -75,18 +85,23 @@ class Bird():
         self.sex = sex
 
         # Paremter set
-        self.genes = params
+        self.genom = params
 
         self._fitness = math.inf
 
     # Objectivefunction
-    def fitness(self):
+    def fitness(self, setup):
         """Computes birds logistical fitness as double, where 0 is good and infinity is bad"""
-        return 0.0
+        return setup.objectivefunction(setup.simulation([e[0] for e in self.genom]), setup.evaluation())
+
+    def genomrepr(self):
+        """Returns genom representation out of parameters"""
+        return "".join([str.ljust(str(e[0]) if str(e[0]).startswith('-') else '+'+str(e[0]), GENOM_LEN_MAX,'0') for e in self.genom])
 
     def __repr__(self):
-        return '<Bird g=%s s=%s>' % (('f' if self.isFemale else 'm', self.sex))
+        return '<Bird g=%s s=%s [%s]>' % (('f' if self.isFemale else 'm', self.sex, self._fitness))
 
+GENOM_LEN_MAX = 18
 class bmo(_algorithm):
     """Algorithm implementation based on Bird Mating Optimization, Askarzadeh (2014)"""
 
@@ -97,8 +112,9 @@ class bmo(_algorithm):
         # init parameters
         #  as provided in the paper
         self.society_size = 10
-        _algorithm.__init__(self, spot_setup, dbname=dbname,
-                            dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+        #_algorithm.__init__(self, spot_setup, dbname=dbname,
+        #                    dbformat=dbformat, parallel=parallel, save_sim=save_sim)
+
 
         # init parameters
         monogamous = 0.5
@@ -123,8 +139,13 @@ class bmo(_algorithm):
         _algorithm.__init__(self, spot_setup, dbname=dbname,
                             dbformat=dbformat, parallel=parallel, save_sim=save_sim)
 
+
+
     def update_parameter(self):
         return 0
+
+    def getdata(self):
+        return []
 
     def sample(self, n):
         """
@@ -135,17 +156,44 @@ class bmo(_algorithm):
             """
             Computes fitness of a given (sub)set of a bird society
             """
-            print(soc)
+
             for i in range(len(soc)):
-                print(i)
-                print("Bird =", soc[i])
-                soc[i]._fitness = soc[i].fitness()
-                print(soc[i]._fitness)
+                #print(self.setup.objectivefunction(self.setup.simulation([e[0] for e in soc[i].genom]), self.setup.evaluation()))
+                soc[i]._fitness = soc[i].fitness(self.setup)
             return soc
 
-        print(self.society[0])
+        print("Starting BMO algorithm using\n####################"+
+        "\n\n\tsociety-size\t\t{}\n\tparameter\t\t{}".format(self.society_size, 0))
 
-        print(dir(self.spot_setup))
+
+        # init population
+
+        self.set_repetiton(n)
+
+        #print(self.parameter())
+
+        self.min_bound, self.max_bound = self.parameter(
+        )['minbound'], self.parameter()['maxbound']
+
+        #print(self.min_bound, self.max_bound)
+        #repetitions = int(n / nChains)
+
+        #ndraw_max = repetitions * nChains
+        #maxChainDraws = int(ndraw_max / nChains)
+
+        params = self.get_parameters()
+
+        for i in range(0, self.society_size):
+            for p in params:
+                self.society[i].genom = self.parameter()
+
+                try:
+                    assert(len(self.society[i].genomrepr()) == ( GENOM_LEN_MAX * len(params)))
+                except AssertionError:
+                    print(self.society[i].genomrepr())
+                    print(len(self.society[i].genomrepr()),( GENOM_LEN_MAX * len(params)))
+                    break
+
 
         #for i in self.spot_setup.params:
         #    print(i.name)
@@ -160,15 +208,22 @@ class bmo(_algorithm):
 
         # compute n epochs
         for i in range(0, n):
+            print("Epoch\t{} ...".format(n))
 
             # compute objective function
             society = compute_fitness(self.society)
 
-            # sort birds based on their objective function
-            society = sorted(society, key=get_fitness)
 
-            # partition society into males and females
+            # sort birds based on their objective function
+            society = sorted(society, key=get_fitness, reverse=True)
+
+            # partition society from gender into males and females
             males, females = split_gender(society)
+
+            pprint(males)
+            pprint(females)
+
+            break
 
             # Specify monogamous, polygynous, and polyandrous birds
             mono, polyg, polya = specify_breeding(society)
@@ -205,8 +260,6 @@ class bmo(_algorithm):
             self.update_parameter()
 
 if __name__ == '__main__':
-
-    print(bmo)
 
     #Create samplers for every algorithm:
     results=[]
