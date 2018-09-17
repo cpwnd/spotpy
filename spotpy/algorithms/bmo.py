@@ -75,6 +75,11 @@ def breed_pathenogenetic(soc):
     return soc
 
 def replacement(soc, mono, polya, polyg, promicious, parthenogenetic):
+    """Replacement of individuals of society with different new breds"""
+    
+    # determine fittest individuals
+
+    # place into soc
     return soc
 
 class Bird():
@@ -100,6 +105,9 @@ class Bird():
 
     def __repr__(self):
         return '<Bird g=%s s=%s [%s]>' % (('f' if self.isFemale else 'm', self.sex, self._fitness))
+
+def sort_soc(soc):
+    return sorted(society, key=get_fitness, reverse=True)
 
 GENOM_LEN_MAX = 18
 class bmo(_algorithm):
@@ -139,7 +147,31 @@ class bmo(_algorithm):
         _algorithm.__init__(self, spot_setup, dbname=dbname,
                             dbformat=dbformat, parallel=parallel, save_sim=save_sim)
 
+    def selection(self, soc):
+        """ Removes the worst birds and create new birds with chaotic sequence"""
+        #TODO is there an queue like collection
+        worst = [soc[0]]
+        best_of_worst = soc[0]._fitness
 
+        # iterate all individuals
+        #  and add to worst collection if best of worst is > i
+        for i in range(len(soc)):
+            if soc[i]._fitness < best_of_worst:
+                # append to worst
+                worst.append(soc[i])
+                # TODO selection size
+                if len(worst) > 10:
+                    # sort highfit < lowfit
+                    worst = sort_soc(worst)
+                    # remove highestfit and set new highest fit
+                    worst.remove(0)
+                    best_of_worst = worst[0]._fitness
+        # TODO: creation 
+        # create new birds with chaotic sequence
+        for i in range(len(soc)):
+            self.society[i].genom = self.parameter()
+
+        return soc
 
     def update_parameter(self):
         return 0
