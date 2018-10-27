@@ -21,9 +21,30 @@ from pprint import pprint
 
 import collections
 import math
+from random import randint
 
 from _algorithm import _algorithm
 
+class BREEDING():
+
+    # Parthenogenesis, Females is able to raise children alone
+    PATHENOGENETIC = 'PATHENOGENETIC'
+    # Polyandry, female bird mates with two or more males
+    POLYANDROUS = 'POLYANDROUS'
+
+    # Monogamy, one male mates with one female
+    MONOGAMOUS = 'MONOGAMOUS'
+    # Polygyny, one male mates with two or more females
+    POLYGYNOUS = 'POLYGYNOUS'
+    # Promiscuity, mating betwenn two birds is one-time-event
+    PROMISCUOUS = 'PROMISCUOUS'
+
+FEMALE_BREEDING = [BREEDING.PATHENOGENETIC, BREEDING.POLYANDROUS]
+MALE_BREEDING = [BREEDING.MONOGAMOUS, BREEDING.POLYGYNOUS, BREEDING.PROMISCUOUS]
+
+#
+# Util
+#
 def get_fitness(bird):
     #print("Bird = ", bird)
     return bird._fitness
@@ -40,27 +61,117 @@ def split_gender(soc):
 
     return males, females
 
-def specify_breeding(soc):
-    #TODO: implement this
-    #TODO
-    #TODO
-    ########################
-    ########################
-    ########################
-    ########################
-    ########################
-    ########################
-    ########################
-    
-    return soc, soc, soc
+class Chaotic_Bird_Generator():
 
-def selection(soc):
-    """ Removes the worst birds and create new birds with chaotic sequence"""
-    #TODO:
+    # last chaotic value
+    last = 0
+
+    @classmethod
+    def next(cls, f):
+        def create_parameter_from(chaotic_value):
+            # TODO make cls.last chaotic_value
+            return f()
+        cls.last = create_parameter_from(cls.last)
+        return cls.last
+
+
+
+
+#
+def specify_breeding(self, soc):
+    """Returns specified society
+    Step 4 of algorithm"""
+
+    # saves references of birds
+    females = []
+    males = []
+
+    # Split society into male/female
+    # - females are the most promising ones
+    # - males are the others
+    for i in range(round(len(soc))):
+        # soc is already ordered
+        if i < round(len(soc) / 2):
+            soc[i].isFemale = True
+            females.append(soc[i])
+        else:
+            soc[i].isFemale = False
+            males.append(soc[i])
+
+    # Split females equally parthenogenetic (better ones) and polyandrous
+    for i in range(len(females)):
+        if i < round(len(females) / 2):
+            females[i].sex = BREEDING.PATHENOGENETIC
+        else:
+            females[i].sex = BREEDING.POLYANDROUS
+
+    # Males split into: Monogamous (better ones) and polygynous
+    for i in range(len(males)):
+        if i < round(len(males) / 3):
+            males[i].sex = BREEDING.MONOGAMOUS
+        elif i < round((len(males) / 3) * 2):
+            males[i].sex = BREEDING.POLYGYNOUS
+        else:
+            # STEP 5 third group is removed from society
+            #        and generated using a chaotic sequence
+            # TODO: chaotic sequence
+            males[i].genom = Chaotic_Bird_Generator.next(self.parameter)
+            males[i].sex = BREEDING.PROMISCUOUS
+
     return soc
 
 def breed_monogamous(soc):
-    return soc
+    """Breed monogamous birds"""
+
+    # problem dimension
+    n = len(soc[0].genom)
+
+    def breeding(f, m, brood):
+        """Returns bird"""
+
+        def randomize(bird):
+            """Returns Bird"""
+            return bird
+
+        def weight(bird):
+            # weight over time
+            weight = 0.1
+
+            return bird
+
+
+        #brood = m.genom + weight(randomize(f.genom - m.genom))
+        brood = m + weight(randomize(f - m))
+        c = randint(1, n)
+        if r_1 > mcf:
+            brood[c] = lower_bound(c) - r_2 * (lower_bound(c) - upper_bound(c))
+            return broot[c]
+    brood = []
+    females = []
+    males = []
+
+    # match elite females with monogamous males
+    for i in range(len(soc)):
+        if soc[i].sex == BREEDING.MONOGAMOUS:
+            males.append(i)
+            for j in range(len(soc)):
+                if soc[j].sex == BREEDING.PATHENOGENETIC:
+                    if j in females:
+                        continue
+                    females.append(j)
+                    break
+
+    # has to be the same
+    assert len(females) == len(males)
+
+    for i in range(len(females)):
+        bird = breeding(soc[females[i]], soc[males[i]], brood)
+        brood.append(bird)
+
+    pprint(females)
+    pprint(males)
+
+    return brood
 
 def breed_polygynous(soc):
     return soc
@@ -76,7 +187,7 @@ def breed_pathenogenetic(soc):
 
 def replacement(soc, mono, polya, polyg, promicious, parthenogenetic):
     """Replacement of individuals of society with different new breds"""
-    
+
     # determine fittest individuals
 
     # place into soc
@@ -106,6 +217,14 @@ class Bird():
     def __repr__(self):
         return '<Bird g=%s s=%s [%s]>' % (('f' if self.isFemale else 'm', self.sex, self._fitness))
 
+    def __add__(self, other):
+        self._fitness += other._fitness
+        return self
+
+    def __sub__(self, other):
+        self._fitness -= other._fitness
+        return self
+
 def sort_soc(soc):
     return sorted(society, key=get_fitness, reverse=True)
 
@@ -119,18 +238,21 @@ class bmo(_algorithm):
         """
         # init parameters
         #  as provided in the paper
-        self.society_size = 10
+        self.society_size = 12
         #_algorithm.__init__(self, spot_setup, dbname=dbname,
         #                    dbformat=dbformat, parallel=parallel, save_sim=save_sim)
 
 
         # init parameters
-        monogamous = 0.5
-        polygynous = 0.3
-        promiscuous = 0.1
-        polyandrous = 0.05
-        parthenogenetics = 0.05
-        maximum_generation = 10e4
+        self.monogamous = 0.5
+        self.polygynous = 0.3
+        self.promiscuous = 0.1
+        self.polyandrous = 0.05
+        self.parthenogenetics = 0.05
+        self.maximum_generation = 10e4
+
+        # Mutation control factor
+        self.mcf = 0.1
 
         self.spot_setup = spot_setup
 
@@ -166,7 +288,7 @@ class bmo(_algorithm):
                     # remove highestfit and set new highest fit
                     worst.remove(0)
                     best_of_worst = worst[0]._fitness
-        # TODO: creation 
+        # TODO: creation
         # create new birds with chaotic sequence
         for i in range(len(soc)):
             self.society[i].genom = self.parameter()
@@ -179,7 +301,8 @@ class bmo(_algorithm):
     def getdata(self):
         return []
 
-    def sample(self, n):
+    def sample(self, n=10e4, monogamous = .5, polygynous = .3, promiscuous = .1, polyandrous = .05,
+    pathenogenetic = .05):
         """
         n :param: defines max epochs of society breeding/evolution
         """
@@ -195,7 +318,7 @@ class bmo(_algorithm):
             return soc
 
         print("Starting BMO algorithm using\n####################"+
-        "\n\n\tsociety-size\t\t{}\n\tparameter\t\t{}".format(self.society_size, 0))
+        "\n\n\tsociety-size\t\t{}\n\tmax epochs\t\t{}".format(self.society_size, n))
 
 
         # init population
@@ -240,7 +363,7 @@ class bmo(_algorithm):
 
         # compute n epochs
         for i in range(0, n):
-            print("Epoch\t{} ...".format(n))
+            print("Epoch\t{} ...".format(i))
 
             # compute objective function
             society = compute_fitness(self.society)
@@ -250,24 +373,24 @@ class bmo(_algorithm):
             society = sorted(society, key=get_fitness, reverse=True)
 
             # partition society from gender into males and females
-            males, females = split_gender(society)
-
-            pprint(males)
-            pprint(females)
-
-            break
-
             # Specify monogamous, polygynous, and polyandrous birds
-            mono, polyg, polya = specify_breeding(society)
+            society = specify_breeding(self, society)
+
+            society = compute_fitness(society)
 
             # Remove the worst birds and generate promiscuous birds based on the chaotic sequence
-            promicious_birds = selection(society)
-
+            # promicious_birds = self.selection(society)
             # Compute objective function of the promiscuous birds
-            promicious_birds = compute_fitness(promicious_birds)
+            # promicious_birds = compute_fitness(promicious_birds)
 
             # BREED MONOGAMOUS BIRDS
-            mono = breed_monogamous(mono)
+            mono_brood = breed_monogamous(society)
+
+            print("#######################")
+            pprint(society)
+            pprint(mono_brood)
+            exit()
+
 
             # BREED POLYGYNOUS BIRDS
             polyg = breed_polygynous(polyg)
@@ -291,12 +414,15 @@ class bmo(_algorithm):
             # Update parameters
             self.update_parameter()
 
+ #           print('hello')
+#            pprint(self.society)
+
 if __name__ == '__main__':
 
     #Create samplers for every algorithm:
     results=[]
     spot_setup=spot_setup()
-    rep=5000
+    rep=40
 
     sampler=bmo(spot_setup, dbname='RosenMC', dbformat='csv')
     sampler.sample(rep)
